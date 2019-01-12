@@ -25,14 +25,14 @@ bool motorB_LastSerialOutputZero = 0;
 char floatToStringBuffer[9];
 
 unsigned long pulseAvgOutputTime = millis();
-unsigned long pulseAvgInterval = 500; //ms
-float pulseAvgIntervalMinute = 120; // 60,000 / 250 = 240 intervals per minute (used for rpm calculation)
+unsigned long pulseAvgInterval = 200; //ms
+float pulseAvgIntervalMinute = 300; // 60,000 / 200 = 300 intervals per minute (used for rpm calculation)
  
  void setup()
  {
-   Serial.begin(115200);
+   ////Serial.begin(115200);
    
-   Serial1.begin(9600);
+   Serial1.begin(115200);
    pinMode(A0, INPUT);//Motor B
    pinMode(A1, INPUT);//Motor A
 //   delay(2000);
@@ -93,11 +93,11 @@ float pulseAvgIntervalMinute = 120; // 60,000 / 250 = 240 intervals per minute (
       Serial1.print(floatToStringBuffer);
       Serial1.print("\n");
       
-      Serial.print("MA=");
-      Serial.print(floatToStringBuffer);
-      Serial.print("\n");
+      //Serial.print("MA=");
+      //Serial.print(floatToStringBuffer);
+      //Serial.print("\n");
 
-       delay(20);
+       //delay(20);
     }
     
     if(!motorB_LastSerialOutputZero || motorB_pulseCounter > 0){
@@ -120,11 +120,9 @@ float pulseAvgIntervalMinute = 120; // 60,000 / 250 = 240 intervals per minute (
       Serial1.print(floatToStringBuffer);      
       Serial1.print("\n");
       
-      Serial.print("MB=");
-      Serial.print(floatToStringBuffer);      
-      Serial.print("\n");
-      
-       delay(20);
+      //Serial.print("MB=");
+      //Serial.print(floatToStringBuffer);      
+      //Serial.print("\n");
     }
     motorA_pulseCounter = 0;
     motorB_pulseCounter = 0;
