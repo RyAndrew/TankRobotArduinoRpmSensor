@@ -1,3 +1,9 @@
+#include <Wire.h>
+#include <Adafruit_INA219.h>
+
+Adafruit_INA219 ina219;
+
+
 //this code measures the difference between two rising edges of the digitalised signal coming from hall sensor and then prints the rpm.
 
 //pin A0 & A1 is the signal pin
@@ -27,16 +33,68 @@ char floatToStringBuffer[9];
 unsigned long pulseAvgOutputTime = millis();
 unsigned long pulseAvgInterval = 200; //ms
 float pulseAvgIntervalMinute = 300; // 60,000 / 200 = 300 intervals per minute (used for rpm calculation)
- 
+
+
+unsigned long batteryReadTime = millis();
+unsigned long batteryReadInterval = 100; //ms
+
+unsigned long batteryOutputTime = millis();
+unsigned long batteryOutputInterval = 1000; //ms
+
+int batteryAverageCount = 0;
+
+float batteryPowerAverageTotal;
+//float batteryPowerAverage;
+float batteryLoadVoltageAverageTotal;
+//float batteryLoadVoltageAverage;
+
+void readBatterySensor()
+{
+batteryAverageCount++;
+
+float shuntvoltage = 0;
+float busvoltage = 0;
+//float current_mA = 0;
+float loadvoltage = 0;
+float power_mW = 0;
+
+shuntvoltage = ina219.getShuntVoltage_mV();
+busvoltage = ina219.getBusVoltage_V();
+//current_mA = ina219.getCurrent_mA();
+power_mW = ina219.getPower_mW();
+batteryPowerAverageTotal += power_mW;
+
+loadvoltage = busvoltage + (shuntvoltage / 1000);
+batteryLoadVoltageAverageTotal += loadvoltage;
+
+//Serial.println("readBatterySensor");
+//
+//Serial.print(" power_mW=");
+//Serial.print(power_mW);
+//Serial.print(" loadvoltage=");
+//Serial.print(loadvoltage);
+//
+//Serial.print(" batteryPowerAverageTotal=");
+//Serial.print(batteryPowerAverageTotal);
+//
+//Serial.print(" batteryLoadVoltageAverageTotal=");
+//Serial.print(batteryLoadVoltageAverageTotal);
+//
+//Serial.print(" batteryAverageCount=");
+//Serial.print(batteryAverageCount);
+//Serial.println();
+}
  void setup()
- {
-   ////Serial.begin(115200);
-   
+ {   
+//   Serial.begin(115200);
    Serial1.begin(115200);
    pinMode(A0, INPUT);//Motor B
    pinMode(A1, INPUT);//Motor A
 //   delay(2000);
 //   Serial1.println("ready");
+
+  ina219.begin();
+  ina219.setCalibration_16V_400mA();
  }
  void loop()
  {
@@ -69,6 +127,35 @@ float pulseAvgIntervalMinute = 300; // 60,000 / 200 = 300 intervals per minute (
    }
    motorB_edgeReadingPrevious = motorB_edgeReading;
 
+  if(millis() - batteryReadTime > batteryReadInterval){
+    batteryReadTime = millis();
+    readBatterySensor();
+  }
+  if(millis() - batteryOutputTime > batteryOutputInterval){
+    batteryOutputTime = millis();
+    batteryPowerAverageTotal = batteryPowerAverageTotal / batteryAverageCount;
+    batteryLoadVoltageAverageTotal = batteryLoadVoltageAverageTotal / batteryAverageCount;
+    
+    Serial1.print("BP=");
+    Serial1.print(batteryPowerAverageTotal);
+    Serial1.print("\n");
+    
+    Serial1.print("BV=");
+    Serial1.print(batteryLoadVoltageAverageTotal);
+    Serial1.print("\n");
+    
+//    Serial.print("BP=");
+//    Serial.print(batteryPowerAverageTotal);
+//    Serial.print("\n");
+//    
+//    Serial.print("BV=");
+//    Serial.print(batteryLoadVoltageAverageTotal);
+//    Serial.print("\n");
+    
+    batteryAverageCount = 0;
+    batteryPowerAverageTotal = 0;
+    batteryLoadVoltageAverageTotal = 0;
+  }
 
   if(millis() - pulseAvgOutputTime > pulseAvgInterval){
     pulseAvgOutputTime = millis();
@@ -93,9 +180,9 @@ float pulseAvgIntervalMinute = 300; // 60,000 / 200 = 300 intervals per minute (
       Serial1.print(floatToStringBuffer);
       Serial1.print("\n");
       
-      //Serial.print("MA=");
-      //Serial.print(floatToStringBuffer);
-      //Serial.print("\n");
+      //Serial1.print("MA=");
+      //Serial1.print(floatToStringBuffer);
+      //Serial1.print("\n");
 
        //delay(20);
     }
@@ -120,9 +207,9 @@ float pulseAvgIntervalMinute = 300; // 60,000 / 200 = 300 intervals per minute (
       Serial1.print(floatToStringBuffer);      
       Serial1.print("\n");
       
-      //Serial.print("MB=");
-      //Serial.print(floatToStringBuffer);      
-      //Serial.print("\n");
+      //Serial1.print("MB=");
+      //Serial1.print(floatToStringBuffer);      
+      //Serial1.print("\n");
     }
     motorA_pulseCounter = 0;
     motorB_pulseCounter = 0;
