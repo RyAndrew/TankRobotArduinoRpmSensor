@@ -54,15 +54,16 @@ batteryAverageCount++;
 
 float shuntvoltage = 0;
 float busvoltage = 0;
-//float current_mA = 0;
+float current_mA = 0;
 float loadvoltage = 0;
-float power_mW = 0;
+//float power_mW = 0;
 
 shuntvoltage = ina219.getShuntVoltage_mV();
 busvoltage = ina219.getBusVoltage_V();
-//current_mA = ina219.getCurrent_mA();
-power_mW = ina219.getPower_mW();
-batteryPowerAverageTotal += power_mW;
+
+current_mA = ina219.getCurrent_mA();
+//power_mW = ina219.getPower_mW();
+batteryPowerAverageTotal += current_mA;
 
 loadvoltage = busvoltage + (shuntvoltage / 1000);
 batteryLoadVoltageAverageTotal += loadvoltage;
@@ -94,7 +95,8 @@ batteryLoadVoltageAverageTotal += loadvoltage;
 //   Serial1.println("ready");
 
   ina219.begin();
-  ina219.setCalibration_16V_400mA();
+  //ina219.setCalibration_16V_400mA();
+  ina219.setCalibration_32V_1A();
  }
  void loop()
  {
